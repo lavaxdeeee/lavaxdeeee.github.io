@@ -211,6 +211,24 @@
     padding:9px 16px;border-top:1px solid var(--line);
   }
 
+  /* ---------- arcade side tab ---------- */
+  .arcade-tab{
+    position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:50;
+    writing-mode:vertical-rl;
+    font-family:var(--pixel);font-size:14px;letter-spacing:3px;color:var(--gold);text-decoration:none;
+    background:#14161c;border:1px solid var(--line);border-right:none;border-radius:14px 0 0 14px;
+    padding:16px 9px;transition:padding .2s ease,background .2s ease,border-color .2s ease;
+  }
+  .arcade-tab:hover{padding-right:17px;background:#1b1e26;border-color:color-mix(in srgb,var(--gold) 45%,transparent)}
+  @media(max-width:640px){
+    .arcade-tab{
+      writing-mode:horizontal-tb;top:auto;bottom:18px;right:14px;transform:none;
+      border-right:1px solid var(--line);border-radius:999px;padding:12px 16px;
+      box-shadow:0 8px 30px rgba(0,0,0,.55);
+    }
+    .arcade-tab:hover{padding-right:16px}
+  }
+
   /* ---------- toast & rain ---------- */
   #toast{
     position:fixed;bottom:26px;left:50%;transform:translate(-50%,14px);z-index:90;
@@ -281,6 +299,8 @@
   </div>
 </div>
 
+<a class="arcade-tab" href="arcade.html">🕹️&nbsp;ARCADE</a>
+
 <div id="toast" role="status"></div>
 <div id="rain" aria-hidden="true"></div>
 
@@ -308,11 +328,14 @@ const SITES = [
     ] },
   { name:'Neon Hockey', icon:'🏒', desc:'Air hockey meets tennis, drenched in neon. Play it right in your browser.', url:'https://neonhockeytenis.netlify.app/', accent:'#22d3ee', tag:'WEB GAME' },
   { name:'Panic Packet', icon:'📦', desc:'A 60-second delivery sprint. Retro arcade panic, on your phone or PC.', url:'https://paperdelivery.netlify.app/', accent:'#fb923c', tag:'MOBILE + PC' },
+  { name:'Pixel Sheep Alchemist', icon:'🐑', desc:'Clicker alchemy. Turn humble sheep into something greater.', url:'https://greensheepclicker.netlify.app/', accent:'#86efac', tag:'WEB GAME' },
+  { name:'Block Out', icon:'🧱', desc:'Sort the colours, clear the blocks. Deceptively chill, secretly evil.', url:'https://blockjam.netlify.app/', accent:'#60a5fa', tag:'WEB GAME' },
+  { name:'Pixel Memory Test', icon:'🧠', desc:'How long a number can you actually remember? Shorter than you think.', url:'https://pixelnumberclick.netlify.app/', accent:'#f472b6', tag:'WEB GAME' },
   // { name:'My Next Thing', icon:'🚀', desc:'Coming to a browser near you.', url:'https://…', accent:'#34d399', tag:'WEB' },
 ];
 
 const CONFIG = {
-  timezone: 'Australia/Sydney',   // the clock in the footer
+  timezone: 'Australia/Adelaide',   // the clock in the footer
 };
 
 /* ---------- helpers ---------- */
@@ -476,6 +499,7 @@ function palItems(){
       icon: s.icon,
       run: () => { closePal(); cardEls[i].click(); },
     })),
+    { label:'The Arcade', hint:'quick games, made in-house', icon:'🕹️', run:() => { location.href = 'arcade.html'; } },
     { label:'Make it rain goats', hint:'you know you want to', icon:'🐐', run:() => { closePal(); rain(38); } },
   ];
 }
@@ -532,6 +556,17 @@ document.addEventListener('keydown', e => {
   if (!typing && pal.hidden && !e.metaKey && !e.ctrlKey && !e.altKey && e.key >= '1' && e.key <= '9'){
     cardEls[+e.key - 1]?.click();
   }
+});
+
+/* shhh: hold shift and type G-O-A-T */
+let seq = '', seqAt = 0;
+document.addEventListener('keydown', e => {
+  if (!e.shiftKey || !/^[A-Z]$/.test(e.key)) return;
+  const now = Date.now();
+  if (now - seqAt > 1600) seq = '';
+  seqAt = now;
+  seq = (seq + e.key).slice(-4);
+  if (seq === 'GOAT') location.href = 'secret.html';
 });
 
 /* ---------- the goat ---------- */
