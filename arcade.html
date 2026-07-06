@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>the arcade — goatyler</title>
+<meta name="description" content="Three quick games, made in-house at goatyler.com. Free plays forever.">
+<meta name="theme-color" content="#0a0c10">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🕹️%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0c10; --panel:rgba(255,255,255,.035); --line:rgba(255,255,255,.09);
+    --text:#ece8de; --dim:#9b968a; --gold:#e8b64c;
+    --pixel:"Pixelify Sans",ui-monospace,monospace;
+    --body:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--gold);color:#14100a}
+  :focus-visible{outline:2px dashed var(--gold);outline-offset:3px;border-radius:6px}
+  .sky{position:fixed;inset:0;z-index:-2;overflow:hidden}
+  .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.13}
+  .b1{width:520px;height:520px;background:var(--gold);top:-180px;left:-120px;animation:drift 36s ease-in-out infinite alternate}
+  .b2{width:460px;height:460px;background:#22d3ee;bottom:-200px;right:-120px;opacity:.08;animation:drift 44s ease-in-out infinite alternate-reverse}
+  @keyframes drift{to{transform:translate(130px,80px) scale(1.15)}}
+  .grain{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.055;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+  header,main,footer{max-width:760px;margin:0 auto;padding:0 22px}
+  header{display:flex;justify-content:space-between;align-items:center;padding-top:20px;gap:10px;flex-wrap:wrap}
+  .back{font-family:var(--pixel);font-size:14px;color:var(--dim);text-decoration:none;border:1px solid var(--line);
+    border-radius:999px;padding:7px 14px;background:var(--panel)}
+  .back:hover{color:var(--gold);border-color:var(--gold)}
+  .crumb{font-family:var(--pixel);font-size:14px;color:var(--dim)}
+
+  .title{font-family:var(--pixel);font-weight:700;font-size:clamp(34px,7vw,52px);text-align:center;margin-top:40px}
+  .title .a{color:var(--gold)}
+  .sub{text-align:center;color:var(--dim);margin:10px 0 34px;font-size:15px}
+
+  /* ---------- game picker ---------- */
+  .menu{display:flex;flex-direction:column;gap:12px;padding-bottom:60px}
+  .gcard{display:flex;align-items:center;gap:16px;text-align:left;background:var(--panel);border:1px solid var(--line);
+    border-radius:16px;padding:18px;cursor:pointer;color:var(--text);font-family:var(--body);transition:border-color .2s,transform .15s}
+  .gcard:hover{border-color:var(--gold);transform:translateY(-2px)}
+  .gcard .gi{font-size:30px}
+  .gcard .gt{flex:1}
+  .gcard .gt b{font-family:var(--pixel);font-size:19px;font-weight:600;display:block}
+  .gcard .gt span{color:var(--dim);font-size:13.5px}
+  .gcard .play{font-family:var(--pixel);font-size:13px;color:var(--gold);border:1px solid color-mix(in srgb,var(--gold) 45%,transparent);
+    border-radius:8px;padding:5px 11px;letter-spacing:1px;white-space:nowrap}
+
+  /* ---------- shared game chrome ---------- */
+  .game{padding-bottom:60px}
+  .ghead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  .ghead h2{font-family:var(--pixel);font-size:22px;font-weight:600}
+  .ghead .hud{font-family:var(--pixel);font-size:14px;color:var(--dim);display:flex;gap:16px}
+  .ghead .hud b{color:var(--gold);font-weight:400}
+  .back-games{font-family:var(--pixel);font-size:13px;color:var(--dim);background:none;border:1px solid var(--line);
+    border-radius:8px;padding:6px 11px;cursor:pointer}
+  .back-games:hover{color:var(--gold);border-color:var(--gold)}
+  .hint{color:var(--dim);font-size:13px;text-align:center;margin-top:12px;font-family:var(--pixel)}
+
+  /* ---------- goat dash ---------- */
+  #dashCv{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:14px;background:#0d0f15;
+    touch-action:manipulation;cursor:pointer}
+
+  /* ---------- whack-a-goat ---------- */
+  .wgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .hole{position:relative;aspect-ratio:1;border:1px solid var(--line);border-radius:16px;cursor:pointer;overflow:hidden;
+    background:radial-gradient(circle at 50% 72%, #1c1f27 0%, #101218 62%)}
+  .hole .mole{position:absolute;inset:auto 0 8%;text-align:center;font-size:clamp(34px,9vw,54px);line-height:1;
+    transform:translateY(120%);transition:transform .12s ease;pointer-events:none;user-select:none}
+  .hole.up .mole{transform:translateY(0)}
+  .hole.hit{border-color:var(--gold)}
+  .hole.baa{border-color:#f87171}
+  #wMsg{font-family:var(--pixel);text-align:center;color:var(--gold);font-size:17px;min-height:24px;margin:14px 0 10px}
+  .wstart{display:block;margin:0 auto;font-family:var(--pixel);font-size:16px;color:#14100a;background:var(--gold);
+    border:none;border-radius:10px;padding:11px 26px;cursor:pointer}
+  .wstart:hover{background:#f2c96a}
+
+  /* ---------- golden reflex ---------- */
+  .rpanel{width:100%;min-height:280px;border:1px solid var(--line);border-radius:16px;background:var(--panel);
+    font-family:var(--pixel);font-size:clamp(17px,3.4vw,22px);color:var(--text);cursor:pointer;padding:20px;line-height:1.7}
+  .rpanel[data-state="wait"]{background:#12141b;color:var(--dim)}
+  .rpanel[data-state="go"]{background:var(--gold);color:#14100a;font-size:clamp(26px,6vw,40px)}
+  .rpanel[data-state="early"]{background:#2a1414;color:#f8b4b4}
+  .rpanel .small{display:block;font-size:13px;color:inherit;opacity:.65;margin-top:10px}
+
+  footer{border-top:1px solid var(--line);padding-top:16px;padding-bottom:28px;display:flex;justify-content:space-between;
+    gap:10px;flex-wrap:wrap;font-family:var(--pixel);font-size:13px;color:var(--dim)}
+
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+  }
+</style>
+</head>
+<body>
+<div class="sky" aria-hidden="true"><i class="blob b1"></i><i class="blob b2"></i></div>
+<div class="grain" aria-hidden="true"></div>
+
+<header>
+  <a class="back" href="/">← the paddock</a>
+  <span class="crumb">goatyler.com/arcade</span>
+</header>
+
+<main>
+  <h1 class="title">🕹️ the <span class="a">arcade</span></h1>
+  <p class="sub">three quick games, made in-house. free plays forever — bests are saved on your device.</p>
+
+  <div id="menu" class="menu">
+    <button class="gcard" data-game="dash">
+      <span class="gi">🐐</span>
+      <span class="gt"><b>Goat Dash</b><span>jump the fences. don't stop running. ever.</span></span>
+      <span class="play">PLAY ▸</span>
+    </button>
+    <button class="gcard" data-game="whack">
+      <span class="gi">🔨</span>
+      <span class="gt"><b>Whack-a-Goat</b><span>30 seconds. bonk the goats, spare the sheep.</span></span>
+      <span class="play">PLAY ▸</span>
+    </button>
+    <button class="gcard" data-game="reflex">
+      <span class="gi">⚡</span>
+      <span class="gt"><b>Golden Reflex</b><span>click the instant it turns gold. how fast are you?</span></span>
+      <span class="play">PLAY ▸</span>
+    </button>
+  </div>
+
+  <section id="dash" class="game" hidden>
+    <div class="ghead">
+      <h2>🐐 Goat Dash</h2>
+      <div class="hud"><span>best <b id="dashBest">0</b></span></div>
+      <button class="back-games">✕ games</button>
+    </div>
+    <canvas id="dashCv" width="960" height="400"></canvas>
+    <p class="hint">space / tap to jump</p>
+  </section>
+
+  <section id="whack" class="game" hidden>
+    <div class="ghead">
+      <h2>🔨 Whack-a-Goat</h2>
+      <div class="hud"><span>score <b id="wScore">0</b></span><span>time <b id="wTime">30</b></span><span>best <b id="wBest">0</b></span></div>
+      <button class="back-games">✕ games</button>
+    </div>
+    <div class="wgrid" id="wGrid"></div>
+    <div id="wMsg"></div>
+    <button class="wstart" id="wStart">start</button>
+    <p class="hint">goats 🐐 +1 · sheep 🐑 −2 (leave the sheep alone)</p>
+  </section>
+
+  <section id="reflex" class="game" hidden>
+    <div class="ghead">
+      <h2>⚡ Golden Reflex</h2>
+      <div class="hud"><span>best <b id="rBest">—</b></span></div>
+      <button class="back-games">✕ games</button>
+    </div>
+    <button class="rpanel" id="rPanel" data-state="idle">click to start<span class="small">then wait for gold… and click as fast as you can</span></button>
+  </section>
+</main>
+
+<footer>
+  <span>no coins needed</span>
+  <span>© goatyler arcade</span>
+</footer>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const gget = k => { try { return localStorage.getItem(k); } catch(e){ return null; } };
+const gset = (k,v) => { try { localStorage.setItem(k, v); } catch(e){} };
+
+/* ---------- tiny router ---------- */
+function show(id){
+  $('#menu').hidden = !!id;
+  document.querySelectorAll('.game').forEach(g => g.hidden = g.id !== id);
+  dashStop(); whackStop();
+  reflexReady();
+  if (id === 'dash') dashReady();
+  document.activeElement?.blur();
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll('[data-game]').forEach(b => b.addEventListener('click', () => show(b.dataset.game)));
+document.querySelectorAll('.back-games').forEach(b => b.addEventListener('click', () => show(null)));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') show(null); });
+
+/* shhh: hold shift and type G-O-A-T */
+let seq = '', seqAt = 0;
+document.addEventListener('keydown', e => {
+  if (!e.shiftKey || !/^[A-Z]$/.test(e.key)) return;
+  const now = Date.now();
+  if (now - seqAt > 1600) seq = '';
+  seqAt = now;
+  seq = (seq + e.key).slice(-4);
+  if (seq === 'GOAT') location.href = 'secret.html';
+});
+
+/* ============================================================
+   GOAT DASH — endless fence-jumper.
+   Driven by setInterval so it runs everywhere (and 50fps is
+   plenty for one goat and some fences).
+   ============================================================ */
+const cv = $('#dashCv'), cx = cv.getContext('2d');
+cx.scale(2, 2);                          // canvas is 2x for crisp text
+const DW = 480, DH = 200, GROUND = 170, GX = 56;
+let dash = null, dashTimer = null;
+
+function dashBest(){ return +(gget('gy_dash_best') || 0); }
+$('#dashBest').textContent = dashBest();
+
+function dashReady(){
+  dash = { state:'ready', y:0, vy:0, obs:[], score:0, speed:4.2, spawn:50 };
+  dashDraw();
+}
+function dashStop(){ clearInterval(dashTimer); dashTimer = null; }
+function dashStart(){
+  dash = { state:'run', y:0, vy:0, obs:[], score:0, speed:4.2, spawn:50 };
+  dashStop();
+  dashTimer = setInterval(dashTick, 20);
+}
+function dashInput(){
+  if (!dash) return;
+  if (dash.state !== 'run') dashStart();
+  else if (dash.y === 0) dash.vy = 10.5;
+}
+cv.addEventListener('pointerdown', dashInput);
+document.addEventListener('keydown', e => {
+  if ($('#dash').hidden) return;
+  if (e.code === 'Space' || e.key === 'ArrowUp'){ e.preventDefault(); dashInput(); }
+});
+
+function dashTick(){
+  const d = dash;
+  d.vy -= 0.65; d.y += d.vy;
+  if (d.y <= 0){ d.y = 0; d.vy = 0; }
+  d.speed = 4.2 + Math.min(4, d.score / 120);
+  d.score += d.speed * 0.04;
+  if (--d.spawn <= 0){
+    d.obs.push({ x: DW + 20, w: 12 + Math.random() * 16, h: 24 + Math.random() * 26 });
+    d.spawn = Math.max(34, 78 - d.speed * 5) + Math.random() * 45;
+  }
+  d.obs.forEach(o => o.x -= d.speed);
+  d.obs = d.obs.filter(o => o.x + o.w > -10);
+  const hit = d.obs.some(o => GX + 22 > o.x && GX + 4 < o.x + o.w && d.y < o.h - 2);
+  if (hit){
+    d.state = 'over';
+    dashStop();
+    if (Math.floor(d.score) > dashBest()){ gset('gy_dash_best', Math.floor(d.score)); $('#dashBest').textContent = Math.floor(d.score); }
+  }
+  dashDraw();
+}
+function dashDraw(){
+  const d = dash;
+  cx.fillStyle = '#0d0f15'; cx.fillRect(0, 0, DW, DH);
+  cx.fillStyle = '#171a22'; cx.fillRect(0, GROUND, DW, DH - GROUND);
+  cx.fillStyle = '#3a3d46'; cx.fillRect(0, GROUND, DW, 2);
+  d.obs.forEach(o => {
+    cx.fillStyle = '#c9922f'; cx.fillRect(o.x, GROUND - o.h, o.w, o.h);
+    cx.fillStyle = '#e8b64c'; cx.fillRect(o.x, GROUND - o.h, o.w, 4);
+  });
+  cx.save();
+  cx.translate(GX + 13, GROUND - d.y);
+  cx.scale(-1, 1);
+  cx.font = '26px serif'; cx.textAlign = 'center'; cx.textBaseline = 'bottom';
+  cx.fillText('🐐', 0, 2);
+  cx.restore();
+  cx.font = '13px "Pixelify Sans", monospace'; cx.textBaseline = 'alphabetic';
+  cx.fillStyle = '#9b968a'; cx.textAlign = 'right';
+  cx.fillText(String(Math.floor(d.score)).padStart(5, '0'), DW - 14, 24);
+  cx.textAlign = 'center'; cx.fillStyle = '#e8b64c';
+  if (d.state === 'ready') cx.fillText('tap or press space to run', DW / 2, 90);
+  if (d.state === 'over'){
+    cx.fillText(`MAAAH! score ${Math.floor(d.score)}`, DW / 2, 82);
+    cx.fillStyle = '#9b968a'; cx.fillText('tap to try again', DW / 2, 104);
+  }
+}
+
+/* ============================================================
+   WHACK-A-GOAT — 30 seconds, goats +1, sheep −2.
+   ============================================================ */
+const wGrid = $('#wGrid');
+const holes = [];
+for (let i = 0; i < 9; i++){
+  const h = document.createElement('button');
+  h.className = 'hole';
+  h.setAttribute('aria-label', 'hole ' + (i + 1));
+  h.innerHTML = '<span class="mole"></span>';
+  h.addEventListener('click', () => whackHit(i));
+  wGrid.appendChild(h); holes.push(h);
+}
+let w = { on:false, score:0, time:30, delay:850, cur:-1, popT:null, secT:null };
+$('#wBest').textContent = gget('gy_whack_best') || 0;
+
+function whackStop(){
+  clearTimeout(w.popT); clearInterval(w.secT);
+  holes.forEach(h => h.classList.remove('up', 'hit', 'baa'));
+  w.on = false;
+}
+function whackStart(){
+  whackStop();
+  w = { on:true, score:0, time:30, delay:850, cur:-1, popT:null, secT:null };
+  $('#wScore').textContent = 0; $('#wTime').textContent = 30; $('#wMsg').textContent = '';
+  $('#wStart').textContent = 'restart';
+  w.secT = setInterval(() => {
+    $('#wTime').textContent = --w.time;
+    if (w.time <= 0) whackEnd();
+  }, 1000);
+  whackPop();
+}
+function whackPop(){
+  if (!w.on) return;
+  if (w.cur >= 0) holes[w.cur].classList.remove('up');
+  let idx; do { idx = Math.floor(Math.random() * 9); } while (idx === w.cur);
+  w.cur = idx;
+  const sheep = Math.random() < 0.18;
+  const mole = holes[idx].querySelector('.mole');
+  mole.textContent = sheep ? '🐑' : '🐐';
+  mole.dataset.kind = sheep ? 'sheep' : 'goat';
+  holes[idx].classList.add('up');
+  w.delay = Math.max(430, w.delay - 11);
+  w.popT = setTimeout(whackPop, w.delay);
+}
+function whackHit(i){
+  if (!w.on || !holes[i].classList.contains('up')) return;
+  const kind = holes[i].querySelector('.mole').dataset.kind;
+  holes[i].classList.remove('up');
+  if (kind === 'goat'){
+    w.score++;
+    holes[i].classList.add('hit'); setTimeout(() => holes[i].classList.remove('hit'), 220);
+  } else {
+    w.score = Math.max(0, w.score - 2);
+    holes[i].classList.add('baa'); setTimeout(() => holes[i].classList.remove('baa'), 320);
+    $('#wMsg').textContent = 'the sheep did nothing wrong!';
+    setTimeout(() => { if (w.on) $('#wMsg').textContent = ''; }, 900);
+  }
+  $('#wScore').textContent = w.score;
+  clearTimeout(w.popT);
+  w.popT = setTimeout(whackPop, 160);
+}
+function whackEnd(){
+  const score = w.score;
+  whackStop();
+  const best = +(gget('gy_whack_best') || 0);
+  if (score > best){ gset('gy_whack_best', score); $('#wBest').textContent = score; }
+  $('#wMsg').textContent = `time! ${score} goat${score === 1 ? '' : 's'} bonked ${score > best ? '— new best! 🏆' : ''}`;
+  $('#wStart').textContent = 'again';
+}
+$('#wStart').addEventListener('click', whackStart);
+
+/* ============================================================
+   GOLDEN REFLEX — click when it turns gold.
+   ============================================================ */
+const rPanel = $('#rPanel');
+let r = { t:null, armAt:0 };
+const rb = gget('gy_reflex_best');
+if (rb) $('#rBest').textContent = rb + ' ms';
+
+function reflexReady(){
+  clearTimeout(r.t);
+  rPanel.dataset.state = 'idle';
+  rPanel.innerHTML = 'click to start<span class="small">then wait for gold… and click as fast as you can</span>';
+}
+function reflexArm(){
+  rPanel.dataset.state = 'wait';
+  rPanel.innerHTML = 'wait for gold…<span class="small">steady… steady…</span>';
+  r.t = setTimeout(() => {
+    rPanel.dataset.state = 'go';
+    rPanel.textContent = 'CLICK!';
+    r.armAt = performance.now();
+  }, 1200 + Math.random() * 2600);
+}
+rPanel.addEventListener('click', () => {
+  const s = rPanel.dataset.state;
+  if (s === 'idle' || s === 'early' || s === 'result') return reflexArm();
+  if (s === 'wait'){
+    clearTimeout(r.t);
+    rPanel.dataset.state = 'early';
+    rPanel.innerHTML = 'baa! too early.<span class="small">click to have another go</span>';
+    return;
+  }
+  if (s === 'go'){
+    const ms = Math.round(performance.now() - r.armAt);
+    const best = +(gget('gy_reflex_best') || Infinity);
+    if (ms < best){ gset('gy_reflex_best', ms); $('#rBest').textContent = ms + ' ms'; }
+    const tier = ms < 200 ? 'lightning goat ⚡' : ms < 280 ? 'quick goat 🐐' : ms < 380 ? 'respectable goat' : 'sleepy goat 😴';
+    rPanel.dataset.state = 'result';
+    rPanel.innerHTML = `${ms} ms — ${tier}<span class="small">click to go again</span>`;
+  }
+});
+
+/* ---------- deep links: arcade.html?g=dash / ?g=whack / ?g=reflex ---------- */
+const qg = new URLSearchParams(location.search).get('g');
+if (qg && ['dash', 'whack', 'reflex'].includes(qg)) show(qg);
+</script>
+</body>
+</html>

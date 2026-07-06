@@ -13,8 +13,21 @@ The page is one screen: a bobbing pixel-art goat, the **goatyler** wordmark (goa
 - 🧩 **Badoku** — sudoku with attitude, for iOS & Android
 - 🏒 **Neon Hockey** — air hockey meets tennis, playable in the browser
 - 📦 **Panic Packet** — a 60-second retro delivery sprint, on mobile or PC
+- 🐑 **Pixel Sheep Alchemist** — clicker alchemy with humble sheep
+- 🧱 **Block Out** — a colour-sort puzzle that starts chill and turns evil
+- 🧠 **Pixel Memory Test** — how long a number can you actually hold in your head?
 
 Cards that link to multiple platforms (like Badoku) open a little chooser menu instead of a single link.
+
+## The Arcade
+
+There's also a side door: a tab on the edge of the page leads to **[the arcade](arcade.html)** — three quick games built for this site and playable nowhere else:
+
+- 🐐 **Goat Dash** — an endless fence-jumper. Space or tap to jump.
+- 🔨 **Whack-a-Goat** — 30 seconds of bonking goats (+1) while sparing the innocent sheep (−2)
+- ⚡ **Golden Reflex** — click the instant the panel turns gold; your reaction time gets judged by a goat
+
+Best scores are saved in your browser. No coins needed.
 
 ## The fun bits
 
@@ -27,6 +40,6 @@ Cards that link to multiple platforms (like Badoku) open a little chooser menu i
 
 ## Under the hood
 
-The entire site is **one HTML file**. No framework, no build step, no dependencies beyond a Google Font. The goat mascot is drawn at runtime from an ASCII pixel map, the bleat is synthesised with the Web Audio API, and the whole thing respects `prefers-reduced-motion`.
+The whole site is **plain HTML files** — no framework, no build step, no dependencies beyond a Google Font. The goat mascot is drawn at runtime from an ASCII pixel map, the bleat is synthesised with the Web Audio API, the arcade games are hand-rolled canvas and DOM, and everything respects `prefers-reduced-motion`.
 
 **No cookies. No trackers. No ads. 100% goat.**
