@@ -150,6 +150,29 @@
   .carrow{opacity:0;transform:translate(-5px,5px);transition:all .2s ease;font-size:15px;color:var(--ac)}
   .card:hover .carrow{opacity:1;transform:translate(0,0)}
   .card.soon{opacity:.82}
+  /* ---------- featured card ---------- */
+  .card.feat{
+    grid-column:1/-1;flex-direction:row;align-items:center;gap:20px;min-height:0;
+    padding:22px 24px;
+    border-color:color-mix(in srgb,var(--ac) 45%,transparent);
+    background:linear-gradient(115deg,color-mix(in srgb,var(--ac) 11%,transparent),var(--panel) 55%);
+  }
+  .card.feat .cicon{font-size:46px}
+  .card.feat .cname{font-size:24px;flex-wrap:wrap}
+  .card.feat .cdesc{flex:none}
+  .feat-body{flex:1;display:flex;flex-direction:column;gap:7px;min-width:0}
+  .card.feat .carrow{font-size:22px}
+  .badge-new{
+    font-family:var(--pixel);font-size:12px;letter-spacing:2px;color:#14100a;
+    background:var(--gold);border-radius:6px;padding:2px 8px;
+    animation:newPulse 1.6s ease-in-out infinite;
+  }
+  @keyframes newPulse{50%{box-shadow:0 0 16px var(--gold);transform:scale(1.08)}}
+  @media(max-width:640px){
+    .card.feat{flex-direction:column;align-items:flex-start;gap:10px}
+    .card.feat .carrow{display:none}
+  }
+
   .card.shake{animation:shake .35s ease}
   @keyframes shake{
     20%{transform:translateX(-6px)}40%{transform:translateX(6px)}
@@ -317,8 +340,11 @@
    tag    : tiny label in the card footer
    menu   : optional — instead of url, a list of {label, icon, hint, url}
             choices shown in a click menu (url:'' = "soon" toast)
+   featured : true — pins the card full-width at the top of the
+            paddock with a pulsing NEW badge (keep it first in this list)
    ============================================================ */
 const SITES = [
+  { name:'Glance', icon:'📟', desc:'Turn a tiny 3.5″ USB screen into a live dashboard for your PC. Free, open source, build-it-yourself.', url:'https://glancescreen.netlify.app/', accent:'#e8b64c', tag:'WINDOWS APP', featured:true },
   { name:'PuttQuest',   icon:'⛳️', desc:'8-bit minigolf for iOS. 18 holes, zero ads, maximum chaos.',  url:'', accent:'#4ade80', tag:'iOS GAME' },
   { name:'PortalJam',   icon:'🌀', desc:'Slide blocks through portals and escape. Ad-free brain fuel.', url:'', accent:'#a78bfa', tag:'iOS GAME' },
   { name:'Badoku',      icon:'🧩', desc:'Sudoku, but with attitude. Numbers fear it.',                  accent:'#f87171', tag:'iOS & ANDROID',
@@ -413,6 +439,17 @@ SITES.forEach((s, i) => {
     <div class="cname">${s.name}${live ? '' : '<span class="badge">SOON</span>'}</div>
     <p class="cdesc">${s.desc}</p>
     <div class="cfoot"><span class="ctag">${s.tag}</span><span class="carrow">${s.menu ? '▾' : '↗'}</span></div>`;
+  if (s.featured) {
+    a.classList.add('feat');
+    a.innerHTML = `
+      <span class="cicon">${s.icon}</span>
+      <span class="feat-body">
+        <span class="cname">${s.name}<span class="badge-new">NEW</span></span>
+        <p class="cdesc">${s.desc}</p>
+        <span class="cfoot"><span class="ctag">${s.tag}</span></span>
+      </span>
+      <span class="carrow">↗</span>`;
+  }
   if (s.menu) {
     a.setAttribute('aria-haspopup', 'menu');
     a.setAttribute('aria-expanded', 'false');
